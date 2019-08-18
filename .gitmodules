@@ -1,3 +1,0 @@
-[submodule "lib/arduino-wifi"]
-	path = lib/arduino-wifi
-	url = https://github.com/arduino-libraries/WiFi.git
