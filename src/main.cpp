@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <iostream>
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
 
@@ -20,7 +21,7 @@ void setup() {
   // Check for presence of wifi shield / module
   if (WiFi.status() == WL_NO_SHIELD) {
 #ifdef DEBUG_MODE
-    Serial.println("WiFi shield not present");
+    std::cout << ("WiFi shield not present") << std::endl;
 #endif
     while (true); // Halt
   }
@@ -28,8 +29,7 @@ void setup() {
   // Attempt to connect to network
   while (status != WL_CONNECTED) {
 #ifdef DEBUG_MODE
-    Serial.print("Attempting to connect to WPA SSID: ");
-    Serial.println(SSID);
+    std::cout << "Attempting to connect to WPA SSID: " << SSID << std::endl;
 #endif
     // Connect to WPA/WPA2 network:
     status = WiFi.begin(SSID, PASS);
@@ -40,7 +40,7 @@ void setup() {
 
 #ifdef DEBUG_MODE
   // Connected to network!
-  Serial.println("Connected to network!");
+  std::cout << "Connected to network!" << std::endl;
 #endif
 
   // Listen for UDP packets on port 67(/68?)
@@ -56,13 +56,11 @@ void loop() {
       char buf[UDP_TX_PACKET_MAX_SIZE];
       Udp.read(buf, UDP_TX_PACKET_MAX_SIZE);
 #ifdef DEBUG_MODE
-      Serial.println("Packet Data: ");
-      Serial.println(buf);
-      Serial.println();
+      std::cout << "Packet Data: " << std::endl << buf << std::endl << std::endl;
 #endif
     } else {
 #ifdef DEBUG_MODE
-      Serial.println("Skipped a UDP packet!");
+      std::cout << "Skipped a UDP packet!" << std::endl;
 #endif
     }
   }
