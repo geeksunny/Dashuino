@@ -12,6 +12,7 @@ enum class Action {
   BLINK,
 };
 
+// TODO: Refactor to more of a builder pattern?
 class LED {
   const uint8_t pin_;
   bool delay_;
@@ -28,10 +29,12 @@ class LED {
   void off(unsigned long durationOff = 0, unsigned long delay = 0);
   void toggle(unsigned long duration = 0, unsigned long delay = 0);
   void blink(unsigned long durationOn, unsigned long durationOff = 0, unsigned long delay = 0);
+  void blinkInverted(unsigned long durationOn, unsigned long durationOff = 0, unsigned long delay = 0);
   void stop();
   bool isRunning();
   bool isOn();
  private:
+  void blink(bool startTurnedOn, unsigned long durationOn, unsigned long durationOff, unsigned long delay);
   void handleDelay();
   void handleAction();
 };

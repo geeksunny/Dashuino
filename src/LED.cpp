@@ -75,8 +75,23 @@ void LED::toggle(const unsigned long duration, const unsigned long delay) {
 }
 
 void LED::blink(const unsigned long durationOn, const unsigned long durationOff, const unsigned long delay) {
+  blink(true, durationOn, durationOff, delay);
+}
+
+void LED::blinkInverted(const unsigned long durationOn, const unsigned long durationOff, const unsigned long delay) {
+  blink(false, durationOn, durationOff, delay);
+}
+
+void LED::blink(const bool startTurnedOn,
+                const unsigned long durationOn,
+                const unsigned long durationOff,
+                const unsigned long delay) {
   if (delay == 0) {
-    on();
+    if (startTurnedOn) {
+      on();
+    } else {
+      off();
+    }
   }
   if (durationOn > 0) {
     timeOn_ = durationOn;
@@ -85,7 +100,7 @@ void LED::blink(const unsigned long durationOn, const unsigned long durationOff,
       delay_ = true;
       nextTick_ = millis() + delay;
     } else {
-      nextTick_ = millis() + durationOn;
+      nextTick_ = millis() + (startTurnedOn ? timeOn_ : timeOff_);
     }
     action_ = Action::BLINK;
   }
