@@ -14,8 +14,9 @@ enum class Action {
 
 class LED {
   const uint8_t pin_;
+  bool delay_;
   unsigned long nextTick_;
-  unsigned long blinkOn_, blinkOff_;
+  unsigned long timeOn_, timeOff_;
   lightswitch::Action action_ = Action::NONE;
  public:
   LED(uint8_t pinNumber);
@@ -26,11 +27,13 @@ class LED {
   void on(unsigned long durationOn = 0, unsigned long delay = 0);
   void off(unsigned long durationOff = 0, unsigned long delay = 0);
   void toggle(unsigned long duration = 0, unsigned long delay = 0);
-  void blink(unsigned long durationOn, unsigned long durationOff = 0);
+  void blink(unsigned long durationOn, unsigned long durationOff = 0, unsigned long delay = 0);
+  void stop();
   bool isRunning();
   bool isOn();
  private:
-  void handleLoop();
+  void handleDelay();
+  void handleAction();
 };
 
 }
