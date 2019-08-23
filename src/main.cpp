@@ -12,9 +12,10 @@
 
 int status = WL_IDLE_STATUS;
 WiFiUDP Udp;
+char buf[UDP_TX_PACKET_MAX_SIZE];
 
-lightswitch::LED ledPrimary(PIN_LED_PRIMARY);
-lightswitch::LED ledSecondary(PIN_LED_SECONDARY);
+lightswitch::LED *ledPrimary;
+lightswitch::LED *ledSecondary;
 
 bool state = false;
 
@@ -31,8 +32,8 @@ void setup() {
   pinMode(PIN_BUTTON, INPUT_PULLUP);
 
   // Set up LEDs
-  ledPrimary.setup();
-  ledSecondary.setup();
+  ledPrimary = &(new lightswitch::LED(PIN_LED_PRIMARY))->setup();
+  ledSecondary = &(new lightswitch::LED(PIN_LED_SECONDARY))->setup();
 
 // Check for presence of wifi shield / module
   if (WiFi.status() == WL_NO_SHIELD) {
@@ -42,16 +43,30 @@ void setup() {
     while (true); // Halt
   }
 
+  // Wifi mode set
+  WiFi.mode(WIFI_STA);
+
   // Attempt to connect to network
-  while (status != WL_CONNECTED) {
+  if (WiFi.getAutoConnect()) {
+#ifdef DEBUG_MODE
+    std::cout << "Attempting to connect using SAVED SSID!" << std::endl;
+#endif
+    // Connect to saved network:
+    WiFi.begin();
+  } else {
 #ifdef DEBUG_MODE
     std::cout << "Attempting to connect to WPA SSID: " << SSID << std::endl;
 #endif
     // Connect to WPA/WPA2 network:
-    status = WiFi.begin(SSID, PASS);
+    WiFi.begin(SSID, PASS);
+  }
 
-    // wait 10 seconds for connection:
-    delay(10000);
+  while (WiFi.status() != WL_CONNECTED) {
+    // wait 0.5 seconds for connection:
+    delay(500);
+#ifdef DEBUG_MODE
+    std::cout << ".";
+#endif
   }
 
 #ifdef DEBUG_MODE
@@ -69,11 +84,11 @@ void loop() {
   bool pressed = digitalRead(PIN_BUTTON) == LOW;
   if (state != pressed) {
     if (pressed) {
-      ledPrimary.blink(LED_DURATION);
-      ledSecondary.blinkInverted(LED_DURATION);
+      ledPrimary->blink(LED_DURATION);
+      ledSecondary->blinkInverted(LED_DURATION);
     } else {
-      ledPrimary.off();
-      ledSecondary.off();
+      ledPrimary->off();
+      ledSecondary->off();
     }
     state = pressed;
 #ifdef DEBUG_MODE
@@ -86,9 +101,8 @@ void loop() {
         // looks like a DHCP request!
         // TODO: Should we verify source IP is 0.0.0.0 ?
         // Light up LED_PRIMARY
-        ledPrimary.on(LED_DURATION);
+        ledPrimary->on(LED_DURATION);
         // Read packet data
-        char buf[UDP_TX_PACKET_MAX_SIZE];
         Udp.read(buf, UDP_TX_PACKET_MAX_SIZE);
 #ifdef DEBUG_MODE
         std::cout << "Packet Data: " << std::endl << buf << std::endl << std::endl;
@@ -98,7 +112,7 @@ void loop() {
         std::cout << "Skipped a UDP packet!" << std::endl;
 #endif
         // Light up LED_SECONDARY
-        ledSecondary.on(500);
+        ledSecondary->on(500);
       }
     }
   }
