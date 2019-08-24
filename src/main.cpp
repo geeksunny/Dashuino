@@ -1,18 +1,18 @@
 #include <Arduino.h>
 #include <iostream>
+#include <iomanip>
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
 
 #include "Configuration.h"
+#include "Dhcp.h"
 #include "LED.h"
 
-#define UDP_PORT_LOCAL    67
-#define UDP_PORT_REMOTE   68
 #define LED_DURATION      500
 
 int status = WL_IDLE_STATUS;
 WiFiUDP Udp;
-char buf[UDP_TX_PACKET_MAX_SIZE];
+RIP_MSG_FIXED dhcpPacket;
 
 lightswitch::LED *ledPrimary;
 lightswitch::LED *ledSecondary;
@@ -26,6 +26,9 @@ void setup() {
   delay(3000);
   std::cout << "Serial console ready." << std::endl;
 //  while (!Serial);  // Wait for serial port.
+
+  // Preparing cout for int values as hex
+  std::cout << std::hex << std::setfill('0') << std::setw(2);
 #endif
 
   // Set up digital pins
@@ -74,8 +77,8 @@ void setup() {
   std::cout << "Connected to network!" << std::endl;
 #endif
 
-  // Listen for UDP packets on port 67(/68?)
-  Udp.begin(UDP_PORT_LOCAL);
+  // Listen for UDP packets on port 67
+  Udp.begin(DHCP_SERVER_PORT);
 }
 
 void loop() {
@@ -97,15 +100,21 @@ void loop() {
   } else {
     // Check for UDP packets
     if (Udp.parsePacket()) {
-      if (Udp.remotePort() == UDP_PORT_REMOTE) {
+      // Check if UDP packet is DHCP request
+      if (Udp.peek() == DHCP_BOOTREQUEST && Udp.remotePort() == DHCP_CLIENT_PORT) {
         // looks like a DHCP request!
-        // TODO: Should we verify source IP is 0.0.0.0 ?
         // Light up LED_PRIMARY
         ledPrimary->on(LED_DURATION);
         // Read packet data
-        Udp.read(buf, UDP_TX_PACKET_MAX_SIZE);
+        parseDhcpRequest(Udp, dhcpPacket);
 #ifdef DEBUG_MODE
-        std::cout << "Packet Data: " << std::endl << buf << std::endl << std::endl;
+        std::cout << "HW ADDR: "
+                  << (int) dhcpPacket.chaddr[0] << ":"
+                  << (int) dhcpPacket.chaddr[1] << ":"
+                  << (int) dhcpPacket.chaddr[2] << ":"
+                  << (int) dhcpPacket.chaddr[3] << ":"
+                  << (int) dhcpPacket.chaddr[4] << ":"
+                  << (int) dhcpPacket.chaddr[5] << std::endl;
 #endif
       } else {
 #ifdef DEBUG_MODE
