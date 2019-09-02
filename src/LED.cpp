@@ -26,7 +26,7 @@ void LED::loop() {
   unsigned long now = millis();
   for (auto &led : leds) {
     // TODO: Should there be a flag check to ensure ::setup() was called?
-    if (led->action_ == Action::NONE) {
+    if (led->action_ == LEDAction::NONE) {
       return;
     }
     if (now >= led->nextTick_) {
@@ -46,7 +46,7 @@ LED &LED::setup() {
 
 void LED::set(const bool turnedOn, const unsigned long duration, const unsigned long delay) {
   if (duration == 0 && delay == 0) {
-    digitalWrite(pin_, HIGH);
+    digitalWrite(pin_, (turnedOn ? HIGH : LOW));
   } else if (delay > 0) {
     delay_ = true;
     nextTick_ = millis() + delay;
@@ -59,7 +59,7 @@ void LED::set(const bool turnedOn, const unsigned long duration, const unsigned 
     delay_ = false;
     nextTick_ = millis() + duration;
   }
-  action_ = turnedOn ? Action::ON : Action::OFF;
+  action_ = turnedOn ? LEDAction::ON : LEDAction::OFF;
 }
 
 void LED::on(const unsigned long durationOn, const unsigned long delay) {
@@ -102,16 +102,16 @@ void LED::blink(const bool startTurnedOn,
     } else {
       nextTick_ = millis() + (startTurnedOn ? timeOn_ : timeOff_);
     }
-    action_ = Action::BLINK;
+    action_ = LEDAction::BLINK;
   }
 }
 
 void LED::stop() {
-  action_ = Action::NONE;
+  action_ = LEDAction::NONE;
 }
 
 bool LED::isRunning() {
-  return action_ != Action::NONE;
+  return action_ != LEDAction::NONE;
 }
 
 bool LED::isOn() {
@@ -121,27 +121,27 @@ bool LED::isOn() {
 void LED::handleDelay() {
   delay_ = false;
   switch (action_) {
-    case Action::ON: {
+    case LEDAction::ON: {
       on();
       if (timeOn_ > 0) {
         nextTick_ = millis() + timeOn_;
       }
       break;
     }
-    case Action::OFF: {
+    case LEDAction::OFF: {
       off();
       if (timeOff_ > 0) {
         nextTick_ = millis() + timeOff_;
       }
       break;
     }
-    case Action::BLINK: {
+    case LEDAction::BLINK: {
       bool setTo = !isOn();
       set(setTo);
       nextTick_ = millis() + ((setTo) ? timeOn_ : timeOff_);
       break;
     }
-    case Action::NONE: {
+    case LEDAction::NONE: {
       // Shouldn't be here
     }
   }
@@ -149,23 +149,23 @@ void LED::handleDelay() {
 
 void LED::handleAction() {
   switch (action_) {
-    case Action::ON: {
+    case LEDAction::ON: {
       off();
       stop();
       break;
     }
-    case Action::OFF: {
+    case LEDAction::OFF: {
       on();
       stop();
       break;
     }
-    case Action::BLINK: {
+    case LEDAction::BLINK: {
       bool litUp = isOn();
       nextTick_ = litUp ? timeOff_ : timeOn_;
       set(!litUp);
       break;
     }
-    case Action::NONE: {
+    case LEDAction::NONE: {
       // Shouldn't be here
     }
   }

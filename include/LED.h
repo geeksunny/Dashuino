@@ -5,11 +5,11 @@
 
 namespace lightswitch {
 
-enum class Action {
+enum class LEDAction {
   NONE,
   ON,
   OFF,
-  BLINK,
+  BLINK
 };
 
 // TODO: Refactor to more of a builder pattern?
@@ -18,7 +18,7 @@ class LED {
   bool delay_;
   unsigned long nextTick_;
   unsigned long timeOn_, timeOff_;
-  lightswitch::Action action_ = Action::NONE;
+  lightswitch::LEDAction action_ = LEDAction::NONE;
  public:
   LED(uint8_t pinNumber);
   virtual ~LED();

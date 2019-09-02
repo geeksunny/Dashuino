@@ -5,18 +5,69 @@
 #include <ESP8266WiFi.h>
 
 #include "Configuration.h"
-#include <Lightswitch.h>
-#include <Dhcp.h>
+#include <LightswitchServer.h>
+#include <WifiTools.h>
 #include "LED.h"
 
-#define LED_DURATION      500
+#define LED_DURATION_LONG      2500
+#define LED_DURATION_SHORT     500
 
-int status = WL_IDLE_STATUS;
-WiFiUDP Udp;
-RIP_MSG_FIXED dhcpPacket;
+class Handler : public lightswitch::ActionHandler {
 
-lightswitch::LED *ledPrimary;
-lightswitch::LED *ledSecondary;
+ public:
+  lightswitch::LED ledPrimary;
+  lightswitch::LED ledSecondary;
+
+  Handler() : ledPrimary{PIN_LED_PRIMARY}, ledSecondary{PIN_LED_SECONDARY} {
+    //
+  }
+
+ private:
+  void setup() {
+    // Set up LEDs
+    ledPrimary.setup();
+    ledSecondary.setup();
+  }
+
+  bool onAction(uint8_t action, uint8_t value) override {
+    switch (action) {
+      case lightswitch::Action::TOGGLE: {
+        // Light up LED_PRIMARY, long
+        ledPrimary.on(LED_DURATION_LONG);
+        break;
+      }
+      case lightswitch::Action::SET_COLOR: {
+        // Light up LED_SECONDARY, long
+        ledSecondary.on(LED_DURATION_LONG);
+        break;
+      }
+      case lightswitch::Action::SET_SCENE: {
+        // Light up LED_PRIMARY, short
+        ledPrimary.on(LED_DURATION_SHORT);
+        break;
+      }
+      case lightswitch::Action::BRIGHTNESS: {
+        // Light up LED_SECONDARY, short
+        ledSecondary.on(LED_DURATION_SHORT);
+        break;
+      }
+      case lightswitch::Action::CYCLE: {
+        ledPrimary.blink(LED_DURATION_SHORT);
+        ledSecondary.blinkInverted(LED_DURATION_SHORT);
+        break;
+      }
+      default: {
+        // Nothing to do.
+        break;
+      }
+    }
+    return false;
+  }
+
+};
+
+std::shared_ptr<Handler> handler;
+std::shared_ptr<lightswitch::LightswitchServer> server;
 
 bool state = false;
 
@@ -35,51 +86,10 @@ void setup() {
   // Set up digital pins
   pinMode(PIN_BUTTON, INPUT_PULLUP);
 
-  // Set up LEDs
-  ledPrimary = &(new lightswitch::LED(PIN_LED_PRIMARY))->setup();
-  ledSecondary = &(new lightswitch::LED(PIN_LED_SECONDARY))->setup();
-
-// Check for presence of wifi shield / module
-  if (WiFi.status() == WL_NO_SHIELD) {
-#ifdef DEBUG_MODE
-    std::cout << ("WiFi shield not present") << std::endl;
-#endif
-    while (true); // Halt
-  }
-
-  // Wifi mode set
-  WiFi.mode(WIFI_STA);
-
-  // Attempt to connect to network
-  if (WiFi.getAutoConnect()) {
-#ifdef DEBUG_MODE
-    std::cout << "Attempting to connect using SAVED SSID!" << std::endl;
-#endif
-    // Connect to saved network:
-    WiFi.begin();
-  } else {
-#ifdef DEBUG_MODE
-    std::cout << "Attempting to connect to WPA SSID: " << CLIENT_SSID << std::endl;
-#endif
-    // Connect to WPA/WPA2 network:
-    WiFi.begin(CLIENT_SSID, CLIENT_PASS);
-  }
-
-  while (WiFi.status() != WL_CONNECTED) {
-    // wait 0.5 seconds for connection:
-    delay(500);
-#ifdef DEBUG_MODE
-    std::cout << ".";
-#endif
-  }
-
-#ifdef DEBUG_MODE
-  // Connected to network!
-  std::cout << "Connected to network!" << std::endl;
-#endif
-
-  // Listen for UDP packets on port 67
-  Udp.begin(DHCP_SERVER_PORT);
+  wifi_tools::startClient();
+  handler = std::make_shared<Handler>();
+  server = std::make_shared<lightswitch::LightswitchServer>(*handler);
+  server->setup();
 }
 
 void loop() {
@@ -88,44 +98,19 @@ void loop() {
   bool pressed = digitalRead(PIN_BUTTON) == LOW;
   if (state != pressed) {
     if (pressed) {
-      ledPrimary->blink(LED_DURATION);
-      ledSecondary->blinkInverted(LED_DURATION);
+      handler->ledPrimary.blink(LED_DURATION_LONG);
+      handler->ledSecondary.blinkInverted(LED_DURATION_LONG);
     } else {
-      ledPrimary->off();
-      ledSecondary->off();
+      handler->ledPrimary.stop();
+      handler->ledSecondary.stop();
     }
     state = pressed;
 #ifdef DEBUG_MODE
     std::cout << "State changed - Button Pressed: " << (pressed ? "YES" : "NO") << std::endl;
 #endif
-  } else {
-    // Check for UDP packets
-    if (Udp.parsePacket()) {
-      // Check if UDP packet is DHCP request
-      if (Udp.peek() == DHCP_BOOTREQUEST && Udp.remotePort() == DHCP_CLIENT_PORT) {
-        // looks like a DHCP request!
-        // Light up LED_PRIMARY
-        ledPrimary->on(LED_DURATION);
-        // Read packet data
-        lightswitch::parseLightswitchPacket(Udp, dhcpPacket);
-#ifdef DEBUG_MODE
-        std::cout << "HW ADDR: "
-                  << (int) dhcpPacket.chaddr[0] << ":"
-                  << (int) dhcpPacket.chaddr[1] << ":"
-                  << (int) dhcpPacket.chaddr[2] << ":"
-                  << (int) dhcpPacket.chaddr[3] << ":"
-                  << (int) dhcpPacket.chaddr[4] << ":"
-                  << (int) dhcpPacket.chaddr[5] << std::endl;
-#endif
-      } else {
-#ifdef DEBUG_MODE
-        std::cout << "Skipped a UDP packet!" << std::endl;
-#endif
-        // Light up LED_SECONDARY
-        ledSecondary->on(500);
-      }
-    }
   }
+  // Process server loop
+  server->loop();
   // Call LED looper to process timed jobs
   lightswitch::LED::loop();
 }
