@@ -5,7 +5,8 @@
 #include <ESP8266WiFi.h>
 
 #include "Configuration.h"
-#include "Dhcp.h"
+#include <Lightswitch.h>
+#include <Dhcp.h>
 #include "LED.h"
 
 #define LED_DURATION      500
@@ -58,10 +59,10 @@ void setup() {
     WiFi.begin();
   } else {
 #ifdef DEBUG_MODE
-    std::cout << "Attempting to connect to WPA SSID: " << SSID << std::endl;
+    std::cout << "Attempting to connect to WPA SSID: " << CLIENT_SSID << std::endl;
 #endif
     // Connect to WPA/WPA2 network:
-    WiFi.begin(SSID, PASS);
+    WiFi.begin(CLIENT_SSID, CLIENT_PASS);
   }
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -106,7 +107,7 @@ void loop() {
         // Light up LED_PRIMARY
         ledPrimary->on(LED_DURATION);
         // Read packet data
-        parseDhcpRequest(Udp, dhcpPacket);
+        lightswitch::parseLightswitchPacket(Udp, dhcpPacket);
 #ifdef DEBUG_MODE
         std::cout << "HW ADDR: "
                   << (int) dhcpPacket.chaddr[0] << ":"

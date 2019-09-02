@@ -1,0 +1,19 @@
+{
+  "DEBUG_MODE": "",
+  "MODE_SWITCH_PIN": 4,
+  "DEVICE_NAME": "LightswitchControl",
+  "CLIENT": {
+    "SSID": "NetworkName",
+    "ENCRYPTED": true,
+    "PASS": "NetworkPassword"
+  },
+  "AP": {
+    "NAME": "LightswitchControl",
+    "MAC_IN_NAME": false,
+    "ENCRYPTED": true,
+    "PASSWORD": "PASSWORD"
+  },
+  "HTTP": {
+    "SERVER_PORT": 80
+  }
+}
