@@ -47,6 +47,7 @@ LED &LED::setup() {
 void LED::set(const bool turnedOn, const unsigned long duration, const unsigned long delay) {
   if (duration == 0 && delay == 0) {
     digitalWrite(pin_, (turnedOn ? HIGH : LOW));
+    return;
   } else if (delay > 0) {
     delay_ = true;
     nextTick_ = millis() + delay;

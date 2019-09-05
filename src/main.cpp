@@ -22,13 +22,13 @@ class Handler : public lightswitch::ActionHandler {
     //
   }
 
- private:
   void setup() {
     // Set up LEDs
     ledPrimary.setup();
     ledSecondary.setup();
   }
 
+ private:
   bool onAction(uint8_t action, uint8_t value) override {
     switch (action) {
       case lightswitch::Action::TOGGLE: {
@@ -66,8 +66,8 @@ class Handler : public lightswitch::ActionHandler {
 
 };
 
-std::shared_ptr<Handler> handler;
-std::shared_ptr<lightswitch::LightswitchServer> server;
+Handler *handler;
+lightswitch::LightswitchServer *server;
 
 bool state = false;
 
@@ -87,8 +87,9 @@ void setup() {
   pinMode(PIN_BUTTON, INPUT_PULLUP);
 
   wifi_tools::startClient();
-  handler = std::make_shared<Handler>();
-  server = std::make_shared<lightswitch::LightswitchServer>(*handler);
+  handler = new Handler();
+  handler->setup();
+  server = new lightswitch::LightswitchServer(*handler);
   server->setup();
 }
 
