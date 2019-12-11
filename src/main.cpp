@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <iostream>
+#include <DebugLog.hpp>
 #include <iomanip>
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
@@ -30,33 +30,40 @@ class Handler : public lightswitch::ActionHandler {
 
  private:
   bool onAction(uint8_t action, uint8_t value) override {
+    DEBUG("onAction(action=", unsigned(action), ", value=", unsigned(value), ")")
     switch (action) {
       case lightswitch::Action::TOGGLE: {
+        DEBUG("action : TOGGLE")
         // Light up LED_PRIMARY, long
         ledPrimary.on(LED_DURATION_LONG);
         break;
       }
       case lightswitch::Action::SET_COLOR: {
+        DEBUG("action : SET_COLOR")
         // Light up LED_SECONDARY, long
         ledSecondary.on(LED_DURATION_LONG);
         break;
       }
       case lightswitch::Action::SET_SCENE: {
+        DEBUG("action : SET_SCENE")
         // Light up LED_PRIMARY, short
         ledPrimary.on(LED_DURATION_SHORT);
         break;
       }
       case lightswitch::Action::BRIGHTNESS: {
+        DEBUG("action : BRIGHTNESS")
         // Light up LED_SECONDARY, short
         ledSecondary.on(LED_DURATION_SHORT);
         break;
       }
       case lightswitch::Action::CYCLE: {
+        DEBUG("action : CYCLE")
         ledPrimary.blink(LED_DURATION_SHORT);
         ledSecondary.blinkInverted(LED_DURATION_SHORT);
         break;
       }
       default: {
+        DEBUG("action : default...")
         // Nothing to do.
         break;
       }
@@ -72,13 +79,8 @@ lightswitch::LightswitchServer *server;
 bool state = false;
 
 void setup() {
+  SETUP_SERIAL(BAUD_RATE, 3000, "Serial console ready.")
 #ifdef DEBUG_MODE
-  // Initialize serial console
-  Serial.begin(BAUD_RATE);
-  delay(3000);
-  std::cout << "Serial console ready." << std::endl;
-//  while (!Serial);  // Wait for serial port.
-
   // Preparing cout for int values as hex
   std::cout << std::hex << std::setfill('0') << std::setw(2);
 #endif
@@ -106,9 +108,7 @@ void loop() {
       handler->ledSecondary.stop();
     }
     state = pressed;
-#ifdef DEBUG_MODE
-    std::cout << "State changed - Button Pressed: " << (pressed ? "YES" : "NO") << std::endl;
-#endif
+    DEBUG("State changed - Button Pressed: ", (pressed ? "YES" : "NO"))
   }
   // Process server loop
   server->loop();
