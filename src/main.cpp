@@ -32,31 +32,31 @@ class Handler : public lightswitch::ActionHandler {
   bool onAction(uint8_t action, uint8_t value) override {
     DEBUG("onAction(action=", unsigned(action), ", value=", unsigned(value), ")")
     switch (action) {
-      case lightswitch::Action::TOGGLE: {
+      case lightswitch::LightswitchAction::TOGGLE: {
         DEBUG("action : TOGGLE")
         // Light up LED_PRIMARY, long
         ledPrimary.on(LED_DURATION_LONG);
         break;
       }
-      case lightswitch::Action::SET_COLOR: {
+      case lightswitch::LightswitchAction::SET_COLOR: {
         DEBUG("action : SET_COLOR")
         // Light up LED_SECONDARY, long
         ledSecondary.on(LED_DURATION_LONG);
         break;
       }
-      case lightswitch::Action::SET_SCENE: {
+      case lightswitch::LightswitchAction::SET_SCENE: {
         DEBUG("action : SET_SCENE")
         // Light up LED_PRIMARY, short
         ledPrimary.on(LED_DURATION_SHORT);
         break;
       }
-      case lightswitch::Action::BRIGHTNESS: {
+      case lightswitch::LightswitchAction::BRIGHTNESS: {
         DEBUG("action : BRIGHTNESS")
         // Light up LED_SECONDARY, short
         ledSecondary.on(LED_DURATION_SHORT);
         break;
       }
-      case lightswitch::Action::CYCLE: {
+      case lightswitch::LightswitchAction::CYCLE: {
         DEBUG("action : CYCLE")
         ledPrimary.blink(LED_DURATION_SHORT);
         ledSecondary.blinkInverted(LED_DURATION_SHORT);
