@@ -11,70 +11,65 @@ inline double &min(double &a, double &b) {
   return (a <= b) ? a : b;
 }
 
-Rgb hsl_to_rgb(const Hsl &hsl) {
-  // TODO
-  return Rgb();
+////////////////////////////////////////////////////////////////
+// Color Factory ///////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+template<>
+Rgb convert_color<Rgb24, Rgb>(const Rgb24 &color_from) {
+  return {(color_from.red / 255.0),
+          (color_from.green / 255.0),
+          (color_from.blue / 255.0)};
 }
 
-Hsl rgb_to_hsl(const Rgb &rgb) {
-  double r = rgb.red / 255.0;
-  double g = rgb.green / 255.0;
-  double b = rgb.blue / 255.0;
+template<>
+Rgb convert_color<Rgb48, Rgb>(const Rgb48 &color_from) {
+  return {(color_from.red / 65535.0),
+          (color_from.green / 65535.0),
+          (color_from.blue / 65535.0)};
+}
 
-  double &cmax = max(r, max(g, b));
-  double &cmin = min(r, min(g, b));
+template<>
+Rgb24 convert_color<Hsv, Rgb24>(const Hsv &color_from) {
+  // TODO: implement based on https://www.tlbx.app/color-converter
+  return Rgb24();
+}
+
+template<>
+Rgb24 convert_color<Hsv32, Rgb24>(const Hsv32 &color_from) {
+  return convert_color<Hsv, Rgb24>(convert_color<Hsv32, Hsv>(color_from));
+}
+
+template<>
+Rgb24 convert_color<Rgb48, Rgb24>(const Rgb48 &color_from) {
+  return {(uint8_t) std::round((color_from.red / 65535.0) * 255.0),
+          (uint8_t) std::round((color_from.green / 65535.0) * 255.0),
+          (uint8_t) std::round((color_from.blue / 65535.0) * 255.0)};
+}
+
+template<>
+Rgb48 convert_color<Rgb24, Rgb48>(const Rgb24 &color_from) {
+  return {(uint16_t) std::round((color_from.red / 255.0) * 65535.0),
+          (uint16_t) std::round((color_from.green / 255.0) * 65535.0),
+          (uint16_t) std::round((color_from.blue / 255.0) * 65535.0)};
+}
+
+template<>
+Hsv convert_color<Rgb24, Hsv>(const Rgb24 &color_from) {
+  Rgb rgb = convert_color<Rgb24, Rgb>(color_from);
+
+  double &cmax = max(rgb.red, max(rgb.green, rgb.blue));
+  double &cmin = min(rgb.red, min(rgb.green, rgb.blue));
   double delta = cmax - cmin;
 
   // hue (in °)
   double h_degrees = (delta == 0.0)
                      ? 0.0
-                     : (&cmax == &r)
-                       ? (60.0 * std::fmod(((g - b) / delta), 6))
-                       : (&cmax == &g)
-                         ? (60.0 * ((b - r) / delta + 2))
-                         : /* (&cmax == &b) ? */ (60.0 * ((r - g) / delta + 4));
-  // saturation
-  double s = (delta == 0.0) ? 0.0 : (delta / (1.0 - std::abs(cmax + cmin - 1)));
-  // lightness
-  double l = (cmax + cmin) / 2.0;
-
-  return {h_degrees, s, l};
-}
-
-inline HslInt hsl_to_hsl_int(const Hsl &hsl) {
-  return {(uint8_t) std::round(65535 * (hsl.hue / 360.0)),
-          (uint8_t) std::round(hsl.saturation * 100),
-          (uint8_t) std::round(hsl.lightness * 100)};
-}
-
-inline Hsl hsl_int_to_hsl(const HslInt &hsl_int) {
-  return {((hsl_int.hue / 65535.0) * 360.0),
-          (hsl_int.saturation / 100.0),
-          (hsl_int.lightness / 100.0)};
-}
-
-Rgb hsv_to_rgb(const Hsv &hsv) {
-  // TODO
-  return Rgb();
-}
-
-Hsv rgb_to_hsv(const Rgb &rgb) {
-  double r = rgb.red / 255.0;
-  double g = rgb.green / 255.0;
-  double b = rgb.blue / 255.0;
-
-  double &cmax = max(r, max(g, b));
-  double &cmin = min(r, min(g, b));
-  double delta = cmax - cmin;
-
-  // hue (in °)
-  double h_degrees = (delta == 0.0)
-                     ? 0.0
-                     : (&cmax == &r)
-                       ? (60.0 * std::fmod(((g - b) / delta), 6))
-                       : (&cmax == &g)
-                         ? (60.0 * ((b - r) / delta + 2))
-                         : /* (&cmax == &b) ? */ (60.0 * ((r - g) / delta + 4));
+                     : (&cmax == &rgb.red)
+                       ? (60.0 * std::fmod(((rgb.green - rgb.blue) / delta), 6))
+                       : (&cmax == &rgb.green)
+                         ? (60.0 * ((rgb.blue - rgb.red) / delta + 2))
+                         : /* (&cmax == &rgb.blue) ? */ (60.0 * ((rgb.red - rgb.green) / delta + 4));
   // saturation
   double s = (delta == 0.0) ? 0.0 : (cmax - cmin) / cmax;
   // value / brightness
@@ -83,55 +78,31 @@ Hsv rgb_to_hsv(const Rgb &rgb) {
   return {h_degrees, s, cmax};
 }
 
-inline HsvInt hsv_to_hsv_int(const Hsv &hsv) {
-  return {(uint8_t) std::round(65535 * (hsv.hue / 360.0)),
-          (uint8_t) std::round(hsv.saturation * 100),
-          (uint8_t) std::round(hsv.value * 100)};
+template<>
+Hsv convert_color<Hsv32, Hsv>(const Hsv32 &color_from) {
+  return {((color_from.hue / 65535.0) * 360.0),
+          (color_from.saturation / 100.0),
+          (color_from.value / 100.0)};
 }
 
-inline Hsv hsv_int_to_hsv(const HsvInt &hsv_int) {
-  return {((hsv_int.hue / 65535.0) * 360.0),
-          (hsv_int.saturation / 100.0),
-          (hsv_int.value / 100.0)};
+template<>
+Hsv32 convert_color<Rgb24, Hsv32>(const Rgb24 &color_from) {
+  return convert_color<Hsv, Hsv32>(convert_color<Rgb24, Hsv>(color_from));
 }
 
-Color &Color::fromRgb(const Rgb &rgb) {
-  red = rgb.red;
-  green = rgb.green;
-  blue = rgb.blue;
-  return *this;
+template<>
+Hsv32 convert_color<Hsv, Hsv32>(const Hsv &color_from) {
+  return {(uint8_t) std::round(65535 * (color_from.hue / 360.0)),
+          (uint8_t) std::round(color_from.saturation * 100),
+          (uint8_t) std::round(color_from.value * 100)};
 }
 
-Color &Color::fromHsl(const Hsl &hsl) {
-  return fromRgb(hsl_to_rgb(hsl));
+
+
+
 }
 
-Color &Color::fromHslInt(const HslInt &hsl_int) {
-  return fromRgb(hsl_to_rgb(hsl_int_to_hsl(hsl_int)));
-}
 
-Color &Color::fromHsv(const Hsv &hsv) {
-  return fromRgb(hsv_to_rgb(hsv));
-}
-
-Color &Color::fromHsvInt(const HsvInt &hsv_int) {
-  return fromRgb(hsv_to_rgb(hsv_int_to_hsv(hsv_int)));
-}
-
-Hsl Color::toHsl() {
-  return rgb_to_hsl(*this);
-}
-
-HslInt Color::toHslInt() {
-  return hsl_to_hsl_int(rgb_to_hsl(*this));
-}
-
-Hsv Color::toHsv() {
-  return rgb_to_hsv(*this);
-}
-
-HsvInt Color::toHsvInt() {
-  return hsv_to_hsv_int(rgb_to_hsv(*this));
 }
 
 }

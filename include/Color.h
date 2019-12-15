@@ -2,25 +2,27 @@
 #define LIGHTSWITCH_INCLUDE_COLOR_H_
 
 #include <cstdint>
+#include <memory>
 
 namespace color {
 
+// Color structs
 struct Rgb {
+  double red;
+  double green;
+  double blue;
+};
+
+struct Rgb24 {
   uint8_t red;
   uint8_t green;
   uint8_t blue;
 };
 
-struct Hsl {
-  double hue;
-  double saturation;
-  double lightness;
-};
-
-struct HslInt {
-  uint16_t hue;
-  uint8_t saturation;
-  uint8_t lightness;
+struct Rgb48 {
+  uint16_t red;
+  uint16_t green;
+  uint16_t blue;
 };
 
 struct Hsv {
@@ -29,39 +31,61 @@ struct Hsv {
   double value;
 };
 
-struct HsvInt {
+struct Hsv32 {
   uint16_t hue;
   uint8_t saturation;
   uint8_t value;
 };
 
-Rgb hsl_to_rgb(const Hsl &hsl);
-Hsl rgb_to_hsl(const Rgb &rgb);
+// Color factory
+template<typename ColorFrom, typename ColorTo>
+ColorTo convert_color(const ColorFrom &color_from);
 
-HslInt hsl_to_hsl_int(const Hsl &hsl);
-Hsl hsl_int_to_hsl(const HslInt &hsl_int);
+template<>
+Rgb convert_color<Rgb24, Rgb>(const Rgb24 &color_from);
+template<>
+Rgb convert_color<Rgb48, Rgb>(const Rgb48 &color_from);
 
-Rgb hsv_to_rgb(const Hsv &hsv);
-Hsv rgb_to_hsv(const Rgb &rgb);
+template<>
+Rgb24 convert_color<Hsv, Rgb24>(const Hsv &color_from);
+template<>
+Rgb24 convert_color<Hsv32, Rgb24>(const Hsv32 &color_from);
+template<>
+Rgb24 convert_color<Rgb48, Rgb24>(const Rgb48 &color_from);
 
-HsvInt hsv_to_hsv_int(const Hsv &hsv);
-Hsv hsv_int_to_hsv(const HsvInt &hsv_int);
+template<>
+Rgb48 convert_color<Rgb24, Rgb48>(const Rgb24 &color_from);
 
-class Color : public Rgb {
+template<>
+Hsv convert_color<Rgb24, Hsv>(const Rgb24 &color_from);
+template<>
+Hsv convert_color<Hsv32, Hsv>(const Hsv32 &color_from);
+
+template<>
+Hsv32 convert_color<Rgb24, Hsv32>(const Rgb24 &color_from);
+template<>
+Hsv32 convert_color<Hsv, Hsv32>(const Hsv &color_from);
+
+// Color cycler
+template<typename ColorType>
+class ColorCycle {
  public:
-  explicit Color(uint8_t red, uint8_t green, uint8_t blue) : Rgb{red, green, blue} {}
+  explicit ColorCycle(long color_duration, ColorType *colors_begin, ColorType *colors_end)
+      : ColorCycle(color_duration, 0, colors_begin, colors_end) {}
+  explicit ColorCycle(long color_duration, std::initializer_list<ColorType> colors)
+      : ColorCycle(color_duration, 0, colors.begin(), colors.end()) {}
+  explicit ColorCycle(long color_duration, long step_duration, std::initializer_list<ColorType> colors)
+      : ColorCycle(color_duration, step_duration, colors.begin(), colors.end()) {}
+  explicit ColorCycle(long color_duration, long step_duration, ColorType *colors_begin, ColorType *colors_end);
 
-  Color &fromRgb(const Rgb &rgb);
-  Color &fromHsl(const Hsl &hsl);
-  Color &fromHslInt(const HslInt &hsl_int);
-  Color &fromHsv(const Hsv &hsv);
-  Color &fromHsvInt(const HsvInt &hsv_int);
+ private:
+  std::unique_ptr<std::unique_ptr<ColorType[]>[]> cycles_;
+  uint8_t color_count_;
+  long color_duration_;
+  long step_duration_;
 
-  Hsl toHsl();
-  HslInt toHslInt();
-
-  Hsv toHsv();
-  HsvInt toHsvInt();
+  uint8_t step_index_ = 0;
+  long next_action_ = 0;
 };
 
 }
