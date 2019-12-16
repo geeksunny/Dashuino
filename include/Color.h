@@ -70,19 +70,23 @@ Hsv32 convert_color<Hsv, Hsv32>(const Hsv &color_from);
 template<typename ColorType>
 class ColorCycle {
  public:
-  explicit ColorCycle(long color_duration, ColorType *colors_begin, ColorType *colors_end)
-      : ColorCycle(color_duration, 0, colors_begin, colors_end) {}
-  explicit ColorCycle(long color_duration, std::initializer_list<ColorType> colors)
-      : ColorCycle(color_duration, 0, colors.begin(), colors.end()) {}
-  explicit ColorCycle(long color_duration, long step_duration, std::initializer_list<ColorType> colors)
-      : ColorCycle(color_duration, step_duration, colors.begin(), colors.end()) {}
-  explicit ColorCycle(long color_duration, long step_duration, ColorType *colors_begin, ColorType *colors_end);
+  explicit ColorCycle(long color_duration,
+                      std::initializer_list<ColorType> colors,
+                      uint8_t fade_step_count = 0,
+                      long fade_duration = 0)
+      : ColorCycle(color_duration, colors.begin(), colors.end(), fade_step_count, fade_duration) {}
+  explicit ColorCycle(long color_duration,
+                      ColorType *colors_begin,
+                      ColorType *colors_end,
+                      uint8_t fade_step_count = 0,
+                      long fade_duration = 0);
 
  private:
   std::unique_ptr<std::unique_ptr<ColorType[]>[]> cycles_;
   uint8_t color_count_;
+  uint8_t fade_step_count_;
   long color_duration_;
-  long step_duration_;
+  long fade_step_duration_;
 
   uint8_t step_index_ = 0;
   long next_action_ = 0;
