@@ -47,6 +47,8 @@ template<>
 Rgb convert_color<Rgb48, Rgb>(const Rgb48 &color_from);
 
 template<>
+Rgb24 convert_color<Rgb, Rgb24>(const Rgb &color_from);
+template<>
 Rgb24 convert_color<Hsv, Rgb24>(const Hsv &color_from);
 template<>
 Rgb24 convert_color<Hsv32, Rgb24>(const Hsv32 &color_from);
@@ -76,8 +78,8 @@ class ColorCycle {
                       long fade_duration = 0)
       : ColorCycle(color_duration, colors.begin(), colors.end(), fade_step_count, fade_duration) {}
   explicit ColorCycle(long color_duration,
-                      ColorType *colors_begin,
-                      ColorType *colors_end,
+                      const ColorType *colors_begin,
+                      const ColorType *colors_end,
                       uint8_t fade_step_count = 0,
                       long fade_duration = 0);
 

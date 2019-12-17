@@ -1,7 +1,7 @@
 #include "Color.h"
 #include <cmath>
 
-#define SAFE_ARR_SIZE(begin, end) std::max(end - begin, 0)
+#define SAFE_ARR_SIZE(begin, end) ((end - begin) > 0) ? (end - begin) : 0
 
 namespace color {
 
@@ -38,6 +38,13 @@ Rgb convert_color<Rgb48, Rgb>(const Rgb48 &color_from) {
   return {(color_from.red / 65535.0),
           (color_from.green / 65535.0),
           (color_from.blue / 65535.0)};
+}
+
+template<>
+Rgb24 convert_color<Rgb, Rgb24>(const Rgb &color_from) {
+  return {(uint8_t) (color_from.red * 255),
+          (uint8_t) (color_from.green * 255),
+          (uint8_t) (color_from.blue * 255)};
 }
 
 template<>
@@ -123,7 +130,7 @@ std::unique_ptr<ColorType[]> fade_colors(const uint8_t step_count, const ColorTy
   auto result = make_unique_array<ColorType>(step_count);
   ColorType *result_arr = result.get();
   for (uint8_t i = 0; i < step_count; ++i) {
-    result_arr[i] = convert_color<Rgb, ColorType>(&faded_arr[i]);
+    result_arr[i] = convert_color<Rgb, ColorType>(faded_arr[i]);
   }
   return result;
 }
@@ -154,10 +161,10 @@ std::unique_ptr<std::unique_ptr<ColorType[]>[]> make_cycle_steps(const uint8_t s
   if (size > 0) {
     if (size == 1 || step_count <= 1) {
       steps.get()[0] = make_unique_array<ColorType>(1);
-      steps.get()[0].get()[0] = &colors_begin;
+      steps.get()[0].get()[0] = *colors_begin;
     } else {
-      ColorType *last_color = colors_end - 1;
-      ColorType *color_a, *color_b;
+      const ColorType *last_color = colors_end - 1;
+      const ColorType *color_a, *color_b;
       int i;
       for (i = 0; i < (size - 1); ++i) {
         color_a = colors_begin + i;
@@ -176,8 +183,8 @@ std::unique_ptr<std::unique_ptr<ColorType[]>[]> make_cycle_steps(const uint8_t s
 
 template<typename ColorType>
 ColorCycle<ColorType>::ColorCycle(long color_duration,
-                                  ColorType *colors_begin,
-                                  ColorType *colors_end,
+                                  const ColorType *colors_begin,
+                                  const ColorType *colors_end,
                                   uint8_t fade_step_count,
                                   long fade_duration)
     : cycles_(make_cycle_steps(fade_step_count, colors_begin, colors_end)),
@@ -195,5 +202,11 @@ ColorCycle<ColorType>::ColorCycle(long color_duration,
     fade_step_duration_ = 0;
   }
 }
+
+template class ColorCycle<Rgb>;
+template class ColorCycle<Rgb24>;
+template class ColorCycle<Rgb48>;
+template class ColorCycle<Hsv>;
+template class ColorCycle<Hsv32>;
 
 }
