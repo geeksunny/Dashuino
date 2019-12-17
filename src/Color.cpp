@@ -144,9 +144,9 @@ std::unique_ptr<Rgb[]> fade_colors(const uint8_t step_count, const Rgb &color_a,
   Rgb *result_arr = result.get();
   for (uint8_t i = 0; i < step_count; ++i) {
     result_arr[i] = {
-        color_a.red + (step_r * i),
-        color_a.green + (step_g * i),
-        color_a.blue + (step_b * i),
+        color_a.red - (step_r * i),
+        color_a.green - (step_g * i),
+        color_a.blue - (step_b * i),
     };
   }
   return result;
