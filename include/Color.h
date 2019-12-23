@@ -2,7 +2,6 @@
 #define LIGHTSWITCH_INCLUDE_COLOR_H_
 
 #include <cstdint>
-#include <memory>
 
 namespace color {
 
@@ -45,6 +44,8 @@ template<>
 Rgb convert_color<Rgb24, Rgb>(const Rgb24 &color_from);
 template<>
 Rgb convert_color<Rgb48, Rgb>(const Rgb48 &color_from);
+template<>
+Rgb convert_color<Hsv32, Rgb>(const Hsv32 &color_from);
 
 template<>
 Rgb24 convert_color<Rgb, Rgb24>(const Rgb &color_from);
@@ -66,33 +67,9 @@ Hsv convert_color<Hsv32, Hsv>(const Hsv32 &color_from);
 template<>
 Hsv32 convert_color<Rgb24, Hsv32>(const Rgb24 &color_from);
 template<>
+Hsv32 convert_color<Rgb, Hsv32>(const Rgb &color_from);
+template<>
 Hsv32 convert_color<Hsv, Hsv32>(const Hsv &color_from);
-
-// Color cycler
-template<typename ColorType>
-class ColorCycle {
- public:
-  explicit ColorCycle(long color_duration,
-                      std::initializer_list<ColorType> colors,
-                      uint8_t fade_step_count = 0,
-                      long fade_duration = 0)
-      : ColorCycle(color_duration, colors.begin(), colors.end(), fade_step_count, fade_duration) {}
-  explicit ColorCycle(long color_duration,
-                      const ColorType *colors_begin,
-                      const ColorType *colors_end,
-                      uint8_t fade_step_count = 0,
-                      long fade_duration = 0);
-
- private:
-  std::unique_ptr<std::unique_ptr<ColorType[]>[]> cycles_;
-  uint8_t color_count_;
-  uint8_t fade_step_count_;
-  long color_duration_;
-  long fade_step_duration_;
-
-  uint8_t step_index_ = 0;
-  long next_action_ = 0;
-};
 
 }
 
