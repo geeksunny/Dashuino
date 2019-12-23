@@ -17,8 +17,8 @@ def parseConfig(d, prefix=''):
             if d[key] == "":
                 result.append(str(prefix+key))
                 continue
-            elif d[key][0] == '`':
-                val = d[key].replace('`', '')
+            elif d[key][0] == '`' and d[key][:1] == '`':
+                val = d[key][1:-1]
             else:
                 val = "\\\"%s\\\"" % d[key]
         elif t is bool:
