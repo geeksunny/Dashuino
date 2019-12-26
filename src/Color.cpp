@@ -40,15 +40,46 @@ Rgb convert_color<Hsv32, Rgb>(const Hsv32 &color_from) {
 
 template<>
 Rgb24 convert_color<Rgb, Rgb24>(const Rgb &color_from) {
-  return {(uint8_t) (color_from.red * 255),
-          (uint8_t) (color_from.green * 255),
-          (uint8_t) (color_from.blue * 255)};
+  return {(uint8_t) std::round(color_from.red * 255.0),
+          (uint8_t) std::round(color_from.green * 255.0),
+          (uint8_t) std::round(color_from.blue * 255.0)};
 }
 
 template<>
 Rgb24 convert_color<Hsv, Rgb24>(const Hsv &color_from) {
-  // TODO: implement based on https://www.tlbx.app/color-converter
-  return Rgb24();
+  double h_degrees = color_from.hue / 60.0;
+  double chroma = color_from.value * color_from.saturation;
+  double x = chroma * (1 - std::abs(std::fmod(h_degrees, 2) - 1));
+  double m = color_from.value - chroma;
+  double r, g, b;
+  if (h_degrees <= 1) {
+    r = chroma + m;
+    g = x + m;
+    b = 0 + m;
+  } else if (h_degrees <= 2) {
+    r = x + m;
+    g = chroma + m;
+    b = 0 + m;
+  } else if (h_degrees <= 3) {
+    r = 0 + m;
+    g = chroma + m;
+    b = x + m;
+  } else if (h_degrees <= 4) {
+    r = 0 + m;
+    g = x + m;
+    b = chroma + m;
+  } else if (h_degrees <= 5) {
+    r = x + m;
+    g = 0 + m;
+    b = chroma + m;
+  } else /*if (h_degrees <= 6)*/ {
+    r = chroma + m;
+    g = 0 + m;
+    b = x + m;
+  }
+  return {(uint8_t) std::round(r * 255.0),
+          (uint8_t) std::round(g * 255.0),
+          (uint8_t) std::round(b * 255.0)};
 }
 
 template<>
