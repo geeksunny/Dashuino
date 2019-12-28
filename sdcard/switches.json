@@ -1,0 +1,21 @@
+{
+  "1": {
+    "comment": "Living room toggle",
+    "group": 1
+  },
+  "2": {
+    "comment": "Living room color cycler",
+    "group": 1,
+    "cycle": {
+      "format": "rgb24",
+      "colors": [
+        [255, 0, 0],
+        [0, 255, 0],
+        [0, 0, 255]
+      ],
+      "duration": 60000,
+      "steps": 12,
+      "fade_duration": 30000
+    }
+  }
+}

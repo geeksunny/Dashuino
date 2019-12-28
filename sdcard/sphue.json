@@ -1,0 +1,4 @@
+{
+  "protocol": "https",
+  "require_self_signed": true
+}
