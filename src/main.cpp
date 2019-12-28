@@ -4,8 +4,8 @@
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
 
-#include "Configuration.h"
 #include <LightswitchServer.h>
+#include "pins.h"
 #include <WifiTools.h>
 #include "LED.h"
 
