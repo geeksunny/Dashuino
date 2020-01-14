@@ -80,7 +80,7 @@ bool state = false;
 
 void setup() {
   SETUP_SERIAL(BAUD_RATE, 3000, "Serial console ready.")
-#ifdef DEBUG_MODE
+#ifdef IS_DEBUG_MODE
   // Preparing cout for int values as hex
   std::cout << std::hex << std::setfill('0') << std::setw(2);
 #endif

@@ -1,5 +1,5 @@
 {
-  "DEBUG_MODE": "",
+  "IS_DEBUG_MODE": "",
   "DEVICE_NAME": "LightswitchControl",
   "CLIENT": {
     "SSID": "NetworkName",
