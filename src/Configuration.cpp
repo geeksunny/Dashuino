@@ -1,5 +1,6 @@
 #include "Configuration.h"
-#include <prog_str.h>
+#include <PgmStringTools.hpp>
+#include <EnumTools.hpp>
 #include <SD.h>
 
 namespace lightswitch {
@@ -14,6 +15,8 @@ const char filename_switches[] PROGMEM = "switches.json";
 const char key_color[] PROGMEM = "color";
 const char key_enabled[] PROGMEM = "enabled";
 const char key_format[] PROGMEM = "format";
+const char key_value[] PROGMEM = "value";
+const char key_refresh_rate[] PROGMEM = "refresh_rate";
 
 const char key_colors[] PROGMEM = "colors";
 const char key_comment[] PROGMEM = "comment";
@@ -33,6 +36,41 @@ const char value_rgb24[] PROGMEM = "rgb24";
 const char value_rgb48[] PROGMEM = "rgb48";
 const char value_hsv[] PROGMEM = "hsv";
 const char value_hsv32[] PROGMEM = "hsv32";
+}
+
+MAKE_ENUM_MAP(color_format_map, ColorFormat,
+              MAPPING(ColorFormat::Rgb, strings::value_rgb),
+              MAPPING(ColorFormat::Rgb24, strings::value_rgb24),
+              MAPPING(ColorFormat::Rgb48, strings::value_rgb48),
+              MAPPING(ColorFormat::Hsv, strings::value_hsv),
+              MAPPING(ColorFormat::Hsv32, strings::value_hsv32)
+)
+
+bool ConfigColor::onKey(String &key, json::JsonParser &parser) {
+  STR_EQ_INIT(key.c_str())
+  STR_EQ_DO(strings::key_format, {
+    String format;
+    bool success = parser.get(format);
+    format_ = pgm_string_to_enum(format.c_str(), ColorFormat::UNKNOWN, color_format_map);
+    return success;
+  })
+  STR_EQ_DO(strings::key_value, {
+    if (parser.checkValueType() != json::ARRAY) {
+      parser.skipValue();
+      return false;
+    }
+    json::JsonArrayIterator<double> array = parser.iterateArray<double>();
+    bool success = false;
+    for (auto &value : value_) {
+      success = array.hasNext() && array.getNext(value);
+      if (!success) {
+        break;
+      }
+    }
+    array.finish();
+    return success;
+  })
+  return false;
 }
 
 bool Configuration::load() {

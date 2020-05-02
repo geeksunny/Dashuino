@@ -4,10 +4,20 @@
 #include <JSON.h>
 #include "ColorCycler.h"
 
+#define COLOR_VALUE_SIZE 3
+
 namespace lightswitch {
 
 enum class ColorFormat {
-  Rgb, Rgb24, Rgb48, Hsv, Hsv32
+  UNKNOWN, Rgb, Rgb24, Rgb48, Hsv, Hsv32
+};
+
+class ConfigColor : public json::JsonModel {
+ private:
+  ColorFormat format_;
+  double value_[COLOR_VALUE_SIZE];
+
+  bool onKey(String &key, json::JsonParser &parser) override;
 };
 
 class DefaulterConfig : public json::JsonModel {
