@@ -39,7 +39,7 @@ class SphueConfig : public json::JsonModel {
   };
  private:
   Protocol protocol_;
-  bool require_self_signed;
+  bool require_self_signed_;
 
   bool onKey(String &key, json::JsonParser &parser) override;
 };

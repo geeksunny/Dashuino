@@ -36,6 +36,9 @@ const char value_rgb24[] PROGMEM = "rgb24";
 const char value_rgb48[] PROGMEM = "rgb48";
 const char value_hsv[] PROGMEM = "hsv";
 const char value_hsv32[] PROGMEM = "hsv32";
+
+const char value_http[] PROGMEM = "http";
+const char value_https[] PROGMEM = "https";
 }
 
 MAKE_ENUM_MAP(color_format_map, ColorFormat,
@@ -113,6 +116,23 @@ bool DefaulterConfig::onKey(String &key, json::JsonParser &parser) {
     return false;
   })
   STR_EQ_RET(strings::key_refresh_rate, parser.get(refresh_rate_))
+  return false;
+}
+
+MAKE_ENUM_MAP(protocol_map, SphueConfig::Protocol,
+              MAPPING(SphueConfig::Protocol::HTTP, strings::value_http),
+              MAPPING(SphueConfig::Protocol::HTTPS, strings::value_https)
+)
+
+bool SphueConfig::onKey(String &key, json::JsonParser &parser) {
+  STR_EQ_INIT(key.c_str())
+  STR_EQ_DO(strings::key_protocol, {
+    String protocol;
+    bool success = parser.get(protocol);
+    protocol_ = pgm_string_to_enum(protocol.c_str(), Protocol::HTTP, protocol_map);
+    return success;
+  })
+  STR_EQ_RET(strings::key_require_self_signed, parser.get(require_self_signed_))
   return false;
 }
 
