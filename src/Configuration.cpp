@@ -46,6 +46,34 @@ MAKE_ENUM_MAP(color_format_map, ColorFormat,
               MAPPING(ColorFormat::Hsv32, strings::value_hsv32)
 )
 
+color::Hsv32 ConfigColor::getColor() {
+  // Convert ConfigColor data into color::Hsv32
+  switch (format_) {
+    case ColorFormat::Rgb: {
+      color::Rgb value = {value_[0], value_[1], value_[2]};
+      return color::convert_color<color::Rgb, color::Hsv32>(value);
+    }
+    case ColorFormat::Rgb24: {
+      color::Rgb24 value = {(uint8_t) value_[0], (uint8_t) value_[1], (uint8_t) value_[2]};
+      return color::convert_color<color::Rgb24, color::Hsv32>(value);
+    }
+    case ColorFormat::Rgb48: {
+      color::Rgb48 value = {(uint16_t) value_[0], (uint16_t) value_[1], (uint16_t) value_[2]};
+      return color::convert_color<color::Rgb48, color::Hsv32>(value);
+    }
+    case ColorFormat::Hsv: {
+      color::Hsv value = {value_[0], value_[1], value_[2]};
+      return color::convert_color<color::Hsv, color::Hsv32>(value);
+    }
+    case ColorFormat::Hsv32: {
+      return {(uint16_t) value_[0], (uint8_t) value_[1], (uint8_t) value_[2]};
+    }
+    case ColorFormat::UNKNOWN:
+    default:
+      return {};
+  }
+}
+
 bool ConfigColor::onKey(String &key, json::JsonParser &parser) {
   STR_EQ_INIT(key.c_str())
   STR_EQ_DO(strings::key_format, {
@@ -70,6 +98,21 @@ bool ConfigColor::onKey(String &key, json::JsonParser &parser) {
     array.finish();
     return success;
   })
+  return false;
+}
+
+bool DefaulterConfig::onKey(String &key, json::JsonParser &parser) {
+  STR_EQ_INIT(key.c_str())
+  STR_EQ_RET(strings::key_enabled, parser.get(enabled_))
+  STR_EQ_DO(strings::key_color, {
+    ConfigColor color;
+    if (parser.get(color)) {
+      color_ = color.getColor();
+      return true;
+    }
+    return false;
+  })
+  STR_EQ_RET(strings::key_refresh_rate, parser.get(refresh_rate_))
   return false;
 }
 

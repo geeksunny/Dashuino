@@ -13,6 +13,9 @@ enum class ColorFormat {
 };
 
 class ConfigColor : public json::JsonModel {
+ public:
+  color::Hsv32 getColor();
+
  private:
   ColorFormat format_;
   double value_[COLOR_VALUE_SIZE];
@@ -24,6 +27,7 @@ class DefaulterConfig : public json::JsonModel {
  private:
   bool enabled_;
   color::Hsv32 color_;
+  unsigned long refresh_rate_;
 
   bool onKey(String &key, json::JsonParser &parser) override;
 };
