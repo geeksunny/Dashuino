@@ -126,6 +126,11 @@ Hsv convert_color<Rgb24, Hsv>(const Rgb24 &color_from) {
 }
 
 template<>
+Hsv convert_color<Rgb48, Hsv>(const Rgb48 &color_from) {
+  return convert_color<Rgb24, Hsv>(convert_color<Rgb48, Rgb24>(color_from));
+}
+
+template<>
 Hsv convert_color<Hsv32, Hsv>(const Hsv32 &color_from) {
   return {((color_from.hue / 65535.0) * 360.0),
           (color_from.saturation / 100.0),
@@ -135,6 +140,11 @@ Hsv convert_color<Hsv32, Hsv>(const Hsv32 &color_from) {
 template<>
 Hsv32 convert_color<Rgb24, Hsv32>(const Rgb24 &color_from) {
   return convert_color<Hsv, Hsv32>(convert_color<Rgb24, Hsv>(color_from));
+}
+
+template<>
+Hsv32 convert_color<Rgb48, Hsv32>(const Rgb48 &color_from) {
+  return convert_color<Hsv, Hsv32>(convert_color<Rgb48, Hsv>(color_from));
 }
 
 template<>

@@ -1,5 +1,8 @@
 {
   "enabled": true,
-  "format": "hsv32",
-  "color": [41442, 75, 254]
+  "color": {
+    "format": "hsv32",
+    "value": [41442, 75, 254]
+  },
+  "refresh_rate": 5000
 }

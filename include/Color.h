@@ -62,10 +62,14 @@ Rgb48 convert_color<Rgb24, Rgb48>(const Rgb24 &color_from);
 template<>
 Hsv convert_color<Rgb24, Hsv>(const Rgb24 &color_from);
 template<>
+Hsv convert_color<Rgb48, Hsv>(const Rgb48 &color_from);
+template<>
 Hsv convert_color<Hsv32, Hsv>(const Hsv32 &color_from);
 
 template<>
 Hsv32 convert_color<Rgb24, Hsv32>(const Rgb24 &color_from);
+template<>
+Hsv32 convert_color<Rgb48, Hsv32>(const Rgb48 &color_from);
 template<>
 Hsv32 convert_color<Rgb, Hsv32>(const Rgb &color_from);
 template<>
