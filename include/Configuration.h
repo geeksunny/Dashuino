@@ -24,6 +24,8 @@ class ConfigColor : public json::JsonModel {
 };
 
 class DefaulterConfig : public json::JsonModel {
+  friend class Controller;
+  friend class Defaulter;
  private:
   bool enabled_;
   color::Hsv32 color_;
@@ -33,6 +35,7 @@ class DefaulterConfig : public json::JsonModel {
 };
 
 class SphueConfig : public json::JsonModel {
+  friend class Controller;
  public:
   enum Protocol {
     HTTP, HTTPS
@@ -45,6 +48,7 @@ class SphueConfig : public json::JsonModel {
 };
 
 class CycleConfig : public json::JsonModel {
+  friend class Controller;
  private:
   ColorFormat format_;
 //  std::deque<> colors_;
@@ -68,6 +72,7 @@ class Switch : public json::JsonModel {
 };
 
 class SwitchesConfig : public json::JsonModel {
+  friend class Controller;
  private:
   std::deque<Switch> switches_;
 
@@ -75,6 +80,7 @@ class SwitchesConfig : public json::JsonModel {
 };
 
 class Configuration {
+  friend class Controller;
  public:
   Configuration() = default;
   bool load();
