@@ -16,6 +16,7 @@ const char key_color[] PROGMEM = "color";
 const char key_enabled[] PROGMEM = "enabled";
 const char key_format[] PROGMEM = "format";
 const char key_value[] PROGMEM = "value";
+const char key_ct[] PROGMEM = "ct";
 const char key_refresh_rate[] PROGMEM = "refresh_rate";
 
 const char key_colors[] PROGMEM = "colors";
@@ -115,6 +116,7 @@ bool DefaulterConfig::onKey(String &key, json::JsonParser &parser) {
     }
     return false;
   })
+  STR_EQ_RET(strings::key_ct, parser.get(ct_))
   STR_EQ_RET(strings::key_refresh_rate, parser.get(refresh_rate_))
   return false;
 }

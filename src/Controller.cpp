@@ -1,5 +1,7 @@
 #include "Controller.h"
 
+#define LIGHT_CT_DEFAULT_VALUE 366
+
 namespace lightswitch {
 
 ////////////////////////////////////////////////////////////////
@@ -7,7 +9,14 @@ namespace lightswitch {
 ////////////////////////////////////////////////////////////////
 
 Defaulter::Defaulter(DefaulterConfig &config) : config_(config) {
-  //
+  // Set up default LightStateChange object
+  if (config.ct_ > 0) {
+    defaultLightState_.setColorTemp(config.ct_);
+  } else {
+    defaultLightState_.setHue(config.color_.hue);
+    defaultLightState_.setSaturation(config.color_.saturation);
+    defaultLightState_.setBrightness(config.color_.value);
+  }
 }
 
 Defaulter::operator bool() {
@@ -24,12 +33,25 @@ void Defaulter::loop(sphue::Sphue &api) {
     auto response = api.getAllLights();
     if (response) {
       // Review list of Lights returned from API
-      for (auto it = (**response).begin(); it != (**response).end(); ++it) {
-        // TODO: check if *it is in lights_; create or update accordingly
+      for (auto & it : (**response)) {
+        if (needs_update(it.second)) {
+          // Perform light state change on this Light
+          api.setLightState(it.first, defaultLightState_);
+          // TODO: Should we check the result at all?
+        }
       }
     }
     nextPollTime_ = now + config_.refresh_rate_;
   }
+}
+
+bool Defaulter::needs_update(sphue::Light &light) {
+  // TODO: Move "is_default" criteria into DefaulterConfig, give more control over what determines default status
+  // TODO: Should we do more checks on the bulb itself?
+  //  - is bulb ON
+  //  - is colormode "ct" (need to add `colormode` value parsing to sphue::Light)
+  // TODO: Keep a local list of Light objects for deeper monitoring of Light property changes
+  return light.state().ct() == LIGHT_CT_DEFAULT_VALUE;
 }
 
 ////////////////////////////////////////////////////////////////

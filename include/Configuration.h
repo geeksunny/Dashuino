@@ -29,6 +29,7 @@ class DefaulterConfig : public json::JsonModel {
  private:
   bool enabled_;
   color::Hsv32 color_;
+  uint16_t ct_;
   unsigned long refresh_rate_;
 
   bool onKey(String &key, json::JsonParser &parser) override;

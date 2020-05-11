@@ -18,10 +18,11 @@ class Defaulter {
 
  private:
   DefaulterConfig &config_;
-  unsigned long nextPollTime_;
-  std::deque<sphue::Light*> lights_;
+  sphue::LightStateChange defaultLightState_;
+  unsigned long nextPollTime_ = 0;
 
   void loop(sphue::Sphue &api);
+  bool needs_update(sphue::Light &light);
 };
 
 class Controller : public ActionHandler {
