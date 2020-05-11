@@ -3,6 +3,9 @@
 #include <EnumTools.hpp>
 #include <SD.h>
 
+#define PORT_HTTP   80
+#define PORT_HTTPS  443
+
 namespace lightswitch {
 
 namespace strings {
@@ -28,8 +31,12 @@ const char key_group[] PROGMEM = "group";
 const char key_light[] PROGMEM = "light";
 const char key_steps[] PROGMEM = "steps";
 
+const char key_hostname[] PROGMEM = "hostname";
+const char key_port[] PROGMEM = "port";
+const char key_auto[] PROGMEM = "auto";
 const char key_protocol[] PROGMEM = "protocol";
 const char key_require_self_signed[] PROGMEM = "require_self_signed";
+const char key_key[] PROGMEM = "key";
 
 // Values
 const char value_rgb[] PROGMEM = "rgb";
@@ -41,6 +48,10 @@ const char value_hsv32[] PROGMEM = "hsv32";
 const char value_http[] PROGMEM = "http";
 const char value_https[] PROGMEM = "https";
 }
+
+////////////////////////////////////////////////////////////////
+// Class : ConfigColor /////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 MAKE_ENUM_MAP(color_format_map, ColorFormat,
               MAPPING(ColorFormat::Rgb, strings::value_rgb),
@@ -105,6 +116,10 @@ bool ConfigColor::onKey(String &key, json::JsonParser &parser) {
   return false;
 }
 
+////////////////////////////////////////////////////////////////
+// Class : DefaulterConfig /////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
 bool DefaulterConfig::onKey(String &key, json::JsonParser &parser) {
   STR_EQ_INIT(key.c_str())
   STR_EQ_RET(strings::key_enabled, parser.get(enabled_))
@@ -121,6 +136,34 @@ bool DefaulterConfig::onKey(String &key, json::JsonParser &parser) {
   return false;
 }
 
+////////////////////////////////////////////////////////////////
+// Class : SphueConfig /////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+const String &SphueConfig::hostname() const {
+  return hostname_;
+}
+
+uint16_t SphueConfig::port() const {
+  return port_ ? port_ : ((protocol_ == HTTPS) ? PORT_HTTPS : PORT_HTTP);
+}
+
+SphueConfig::Protocol SphueConfig::protocol() const {
+  return protocol_;
+}
+
+bool SphueConfig::autoDiscover() const {
+  return auto_discover_ || hostname_.isEmpty();
+}
+
+bool SphueConfig::requireSelfSigned() const {
+  return require_self_signed_;
+}
+
+const String &SphueConfig::apiKey() const {
+  return api_key_;
+}
+
 MAKE_ENUM_MAP(protocol_map, SphueConfig::Protocol,
               MAPPING(SphueConfig::Protocol::HTTP, strings::value_http),
               MAPPING(SphueConfig::Protocol::HTTPS, strings::value_https)
@@ -128,15 +171,23 @@ MAKE_ENUM_MAP(protocol_map, SphueConfig::Protocol,
 
 bool SphueConfig::onKey(String &key, json::JsonParser &parser) {
   STR_EQ_INIT(key.c_str())
+  STR_EQ_RET(strings::key_hostname, parser.get(hostname_))
+  STR_EQ_RET(strings::key_port, parser.get(port_))
   STR_EQ_DO(strings::key_protocol, {
     String protocol;
     bool success = parser.get(protocol);
     protocol_ = pgm_string_to_enum(protocol.c_str(), Protocol::HTTP, protocol_map);
     return success;
   })
+  STR_EQ_RET(strings::key_auto, parser.get(auto_discover_))
   STR_EQ_RET(strings::key_require_self_signed, parser.get(require_self_signed_))
+  STR_EQ_RET(strings::key_key, parser.get(api_key_))
   return false;
 }
+
+////////////////////////////////////////////////////////////////
+// Class : Configuration ///////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 bool Configuration::load() {
   String filename;

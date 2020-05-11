@@ -80,13 +80,13 @@ void Controller::exec_color(uint8_t cycle_id, color::Hsv32 *color) {
 }
 
 sphue::Sphue Controller::create_sphue() {
-  // TODO: Check for stored server address!
-  //  Call `autoDiscoverHub()` only when server address is not stored.
-  sphue::Sphue result = sphue::autoDiscoverHub();
-  if (result) {
-    // TODO: store newly discovered server address
+  if (!config_.sphue_config_.autoDiscover()) {
+    return sphue::Sphue(config_.sphue_config_.hostname().c_str(), config_.sphue_config_.port());
+  } else {
+    return sphue::autoDiscoverHub();
+    // TODO: Should auto-discovered hostnames be saved for future use?
+    //  - If yes, check result here, store on success
   }
-  return result;
 }
 
 bool Controller::onAction(uint8_t action, uint8_t value) {

@@ -1,4 +1,8 @@
 {
+  "hostname": "255.255.255.255",
+  "port": 443,
+  "auto": true,
   "protocol": "https",
-  "require_self_signed": true
+  "require_self_signed": true,
+  "key": "abc123"
 }

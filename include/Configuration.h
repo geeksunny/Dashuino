@@ -26,6 +26,7 @@ class ConfigColor : public json::JsonModel {
 class DefaulterConfig : public json::JsonModel {
   friend class Controller;
   friend class Defaulter;
+
  private:
   bool enabled_;
   color::Hsv32 color_;
@@ -36,14 +37,25 @@ class DefaulterConfig : public json::JsonModel {
 };
 
 class SphueConfig : public json::JsonModel {
-  friend class Controller;
  public:
   enum Protocol {
     HTTP, HTTPS
   };
+
+  const String &hostname() const;
+  uint16_t port() const;
+  Protocol protocol() const;
+  bool autoDiscover() const;
+  bool requireSelfSigned() const;
+  const String &apiKey() const;
+
  private:
+  String hostname_;
+  uint16_t port_;
   Protocol protocol_;
+  bool auto_discover_;
   bool require_self_signed_;
+  String api_key_;
 
   bool onKey(String &key, json::JsonParser &parser) override;
 };
