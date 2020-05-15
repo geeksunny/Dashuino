@@ -16,6 +16,7 @@
     "SERVER_PORT": 80
   },
   "PIN": {
+    "SD_CS": 0,
     "BUTTON": "`D5`",
     "LED_PRIMARY": "`D6`",
     "LED_SECONDARY": "`D7`"
