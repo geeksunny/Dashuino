@@ -4,9 +4,9 @@
 #include <WiFiUdp.h>
 #include <ESP8266WiFi.h>
 
-#include <LightswitchServer.h>
 #include "pins.h"
 #include <WifiTools.h>
+#include "Controller.h"
 #include "LED.h"
 
 #define LED_DURATION_LONG      2500
@@ -73,8 +73,11 @@ class Handler : public lightswitch::ActionHandler {
 
 };
 
-Handler *handler;
+//Handler *handler;
 lightswitch::LightswitchServer *server;
+
+lightswitch::Configuration config;
+lightswitch::Controller *controller;
 
 bool state = false;
 
@@ -89,9 +92,10 @@ void setup() {
   pinMode(PIN_BUTTON, INPUT_PULLUP);
 
   wifi_tools::startClient();
-  handler = new Handler();
-  handler->setup();
-  server = new lightswitch::LightswitchServer(*handler);
+  controller = new lightswitch::Controller(config);
+//  handler = new Handler();
+//  handler->setup();
+  server = new lightswitch::LightswitchServer(*controller);
   server->setup();
 }
 
