@@ -186,6 +186,57 @@ bool SphueConfig::onKey(String &key, json::JsonParser &parser) {
 }
 
 ////////////////////////////////////////////////////////////////
+// Class : CycleConfig /////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+bool CycleConfig::onKey(String &key, json::JsonParser &parser) {
+  STR_EQ_INIT(key.c_str())
+  STR_EQ_DO(strings::key_format, {
+    String format;
+    bool success = parser.get(format);
+    format_ = pgm_string_to_enum(format.c_str(), ColorFormat::UNKNOWN, color_format_map);
+    return success;
+  })
+  // TODO: Colors array parsing
+  STR_EQ_RET(strings::key_duration, parser.get(duration_))
+  STR_EQ_RET(strings::key_steps, parser.get(steps_))
+  STR_EQ_RET(strings::key_fade_duration, parser.get(fade_duration_))
+  return false;
+}
+
+////////////////////////////////////////////////////////////////
+// Class : Switch //////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+bool Switch::onKey(String &key, json::JsonParser &parser) {
+  STR_EQ_INIT(key.c_str())
+  STR_EQ_DO(strings::key_group, {
+    type_ = Type::Group;
+    return parser.get(id_);
+  })
+  STR_EQ_DO(strings::key_light, {
+    type_ = Type::Light;
+    return parser.get(id_);
+  })
+  STR_EQ_RET(strings::key_cycle, parser.get(cycle_config_))
+  return false;
+}
+
+////////////////////////////////////////////////////////////////
+// Class : SwitchesConfig //////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+bool SwitchesConfig::onKey(String &key, json::JsonParser &parser) {
+  uint8_t id = json::strToLong(key);
+  Switch a_switch;
+  if (parser.get(a_switch)) {
+    switches_[id] = std::move(a_switch);
+    return true;
+  }
+  return false;
+}
+
+////////////////////////////////////////////////////////////////
 // Class : Configuration ///////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 

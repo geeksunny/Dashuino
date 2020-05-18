@@ -78,8 +78,11 @@ class Switch : public json::JsonModel {
     Light, Group
   };
  private:
+  // TODO: Should we parse `comment` into memory?
   Type type_;
-  std::unique_ptr<color::ColorCycle<color::Hsv32>> cycle_;
+  uint8_t id_;
+  CycleConfig cycle_config_;
+//  std::unique_ptr<color::ColorCycle<color::Hsv32>> cycle_;
 
   bool onKey(String &key, json::JsonParser &parser) override;
 };
@@ -87,7 +90,7 @@ class Switch : public json::JsonModel {
 class SwitchesConfig : public json::JsonModel {
   friend class Controller;
  private:
-  std::deque<Switch> switches_;
+  std::map<uint8_t, Switch> switches_;
 
   bool onKey(String &key, json::JsonParser &parser) override;
 };
