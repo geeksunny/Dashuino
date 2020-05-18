@@ -194,12 +194,17 @@ bool Configuration::load() {
   File file;
   bool success_default, success_sphue, success_switches;
 
+  if (!SD.begin(PIN_SD_CS)) {
+    return false;
+  }
+
   // Defaulter
   {
     filename = read_prog_str(strings::filename_defaulter);
     file = SD.open(filename, FILE_READ);
     json::JsonParser parser(file);
     success_default = parser.get(defaulter_config_);
+    file.close();
   }
 
   // Sphue
@@ -208,6 +213,7 @@ bool Configuration::load() {
     file = SD.open(filename, FILE_READ);
     json::JsonParser parser(file);
     success_sphue = parser.get(sphue_config_);
+    file.close();
   }
 
   // Switches
@@ -216,6 +222,7 @@ bool Configuration::load() {
     file = SD.open(filename, FILE_READ);
     json::JsonParser parser(file);
     success_switches = parser.get(switches_config_);
+    file.close();
   }
 
   return success_default && success_sphue && success_switches;
