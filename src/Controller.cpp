@@ -51,7 +51,7 @@ bool Defaulter::needs_update(sphue::Light &light) {
   //  - is bulb ON
   //  - is colormode "ct" (need to add `colormode` value parsing to sphue::Light)
   // TODO: Keep a local list of Light objects for deeper monitoring of Light property changes
-  return light.state().ct() == LIGHT_CT_DEFAULT_VALUE;
+  return light.state().on() && light.state().ct() == LIGHT_CT_DEFAULT_VALUE;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -81,6 +81,11 @@ void Controller::exec_color(uint8_t cycle_id, color::Hsv32 *color) {
 
 sphue::Sphue Controller::create_sphue() {
   if (!config_.sphue_config_.autoDiscover()) {
+    if (config_.sphue_config_.apiKey().length()) {
+      return sphue::Sphue(config_.sphue_config_.apiKey().c_str(),
+                          config_.sphue_config_.hostname().c_str(),
+                          config_.sphue_config_.port());
+    }
     return sphue::Sphue(config_.sphue_config_.hostname().c_str(), config_.sphue_config_.port());
   } else {
     return sphue::autoDiscoverHub();
