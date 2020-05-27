@@ -27,7 +27,7 @@ void LED::loop() {
   for (auto &led : leds) {
     // TODO: Should there be a flag check to ensure ::setup() was called?
     if (led->action_ == LEDAction::NONE) {
-      return;
+      continue;
     }
     if (now >= led->nextTick_) {
       if (led->delay_) {
@@ -162,7 +162,7 @@ void LED::handleAction() {
     }
     case LEDAction::BLINK: {
       bool litUp = isOn();
-      nextTick_ = litUp ? timeOff_ : timeOn_;
+      nextTick_ = millis() + (litUp ? timeOff_ : timeOn_);
       set(!litUp);
       break;
     }
