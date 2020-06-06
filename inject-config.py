@@ -2,6 +2,7 @@
 This script parses values from config.json for use in the build environment as value macros.
 """
 import json
+import re
 
 
 def parseConfig(d, prefix=''):
@@ -18,7 +19,7 @@ def parseConfig(d, prefix=''):
                 result.append(str(prefix+key))
                 continue
             elif d[key][0] == '`' and d[key][:1] == '`':
-                val = d[key][1:-1]
+                val = re.escape(d[key][1:-1])
             else:
                 val = "\\\"%s\\\"" % d[key]
         elif t is bool:
