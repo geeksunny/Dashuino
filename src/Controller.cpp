@@ -65,6 +65,24 @@ Controller::Controller(Configuration &configuration)
       defaulter_(configuration.defaulter_config_),
       cycler_(std::bind(&Controller::exec_color, this, std::placeholders::_1, std::placeholders::_2)) {
   //
+  LightswitchConfig &ls = configuration.lightswitch_config_;
+  // ServerInterfaces are allocated on the heap as they are registered.
+  // We are not keeping track of their pointers here as they are never intended to be deleted.
+  if (ls.tcp_) {
+    server_.registerInterface(new TcpInterface());
+  }
+  if (ls.udp_) {
+    UdpInterface udp;
+    server_.registerInterface(new UdpInterface());
+  }
+  if (ls.dhcp_) {
+    // TODO: Add DhcpInterface when implemented upstream
+  }
+  if (ls.espnow_) {
+    server_.registerInterface(new EspNowInterface());
+  }
+}
+
 }
 
 void Controller::loop() {

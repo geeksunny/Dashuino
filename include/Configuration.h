@@ -95,6 +95,17 @@ class SwitchesConfig : public json::JsonModel {
   bool onKey(String &key, json::JsonParser &parser) override;
 };
 
+class LightswitchConfig : public json::JsonModel {
+  friend class Controller;
+ private:
+  bool tcp_;
+  bool udp_;
+  bool dhcp_;
+  bool espnow_;
+
+  bool onKey(String &key, json::JsonParser &parser) override;
+};
+
 class Configuration {
   friend class Controller;
  public:
@@ -105,6 +116,7 @@ class Configuration {
   DefaulterConfig defaulter_config_;
   SphueConfig sphue_config_;
   SwitchesConfig switches_config_;
+  LightswitchConfig lightswitch_config_;
 };
 
 }

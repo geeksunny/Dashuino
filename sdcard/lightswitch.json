@@ -1,0 +1,6 @@
+{
+  "tcp": false,
+  "udp": false,
+  "dhcp": false,
+  "espnow": true
+}

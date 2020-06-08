@@ -13,6 +13,7 @@ namespace strings {
 const char filename_defaulter[] PROGMEM = "defaulter.json";
 const char filename_sphue[] PROGMEM = "sphue.json";
 const char filename_switches[] PROGMEM = "switches.json";
+const char filename_lightswitch[] PROGMEM = "lightswitch.json";
 
 // Keys
 const char key_color[] PROGMEM = "color";
@@ -37,6 +38,11 @@ const char key_auto[] PROGMEM = "auto";
 const char key_protocol[] PROGMEM = "protocol";
 const char key_require_self_signed[] PROGMEM = "require_self_signed";
 const char key_key[] PROGMEM = "key";
+
+const char key_tcp[] PROGMEM = "tcp";
+const char key_udp[] PROGMEM = "udp";
+const char key_dhcp[] PROGMEM = "dhcp";
+const char key_espnow[] PROGMEM = "espnow";
 
 // Values
 const char value_rgb[] PROGMEM = "rgb";
@@ -237,13 +243,26 @@ bool SwitchesConfig::onKey(String &key, json::JsonParser &parser) {
 }
 
 ////////////////////////////////////////////////////////////////
+// Class : LightswitchConfig////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+bool LightswitchConfig::onKey(String &key, json::JsonParser &parser) {
+  STR_EQ_INIT(key.c_str())
+  STR_EQ_RET(strings::key_tcp, parser.get(tcp_))
+  STR_EQ_RET(strings::key_udp, parser.get(udp_))
+  STR_EQ_RET(strings::key_dhcp, parser.get(dhcp_))
+  STR_EQ_RET(strings::key_espnow, parser.get(espnow_))
+  return false;
+}
+
+////////////////////////////////////////////////////////////////
 // Class : Configuration ///////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
 bool Configuration::load() {
   String filename;
   File file;
-  bool success_default, success_sphue, success_switches;
+  bool success_default, success_sphue, success_switches, success_lightswitch;
 
   if (!SD.begin(PIN_SD_CS)) {
     return false;
@@ -252,7 +271,7 @@ bool Configuration::load() {
   // Defaulter
   {
     filename = read_prog_str(strings::filename_defaulter);
-    file = SD.open(filename, FILE_READ);
+    file = SD.open(filename);
     json::JsonParser parser(file);
     success_default = parser.get(defaulter_config_);
     file.close();
@@ -261,7 +280,7 @@ bool Configuration::load() {
   // Sphue
   {
     filename = read_prog_str(strings::filename_sphue);
-    file = SD.open(filename, FILE_READ);
+    file = SD.open(filename);
     json::JsonParser parser(file);
     success_sphue = parser.get(sphue_config_);
     file.close();
@@ -270,13 +289,22 @@ bool Configuration::load() {
   // Switches
   {
     filename = read_prog_str(strings::filename_switches);
-    file = SD.open(filename, FILE_READ);
+    file = SD.open(filename);
     json::JsonParser parser(file);
     success_switches = parser.get(switches_config_);
     file.close();
   }
 
-  return success_default && success_sphue && success_switches;
+  // Lightswitch
+  {
+    filename = read_prog_str(strings::filename_lightswitch);
+    file = SD.open(filename);
+    json::JsonParser parser(file);
+    success_lightswitch = parser.get(lightswitch_config_);
+    file.close();
+  }
+
+  return success_default && success_sphue && success_switches && success_lightswitch;
 }
 
 }
