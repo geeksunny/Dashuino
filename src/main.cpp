@@ -2,9 +2,13 @@
 #include <DebugLog.hpp>
 #include <iomanip>
 
+#include "LED.h"
 #include "pins.h"
 #include <WifiTools.h>
 #include "Controller.h"
+
+led::LED *primary;
+led::LED *secondary;
 
 lightswitch::Configuration config;
 lightswitch::Controller *controller;
@@ -12,10 +16,6 @@ lightswitch::Controller *controller;
 bool state = false;
 
 
-
-
-    }
-  }
 void setup() {
   SETUP_SERIAL(BAUD_RATE, 3000, "Serial console ready.")
 //#ifdef IS_DEBUG_MODE
@@ -26,10 +26,23 @@ void setup() {
   // Set up digital pins
   pinMode(PIN_BUTTON, INPUT_PULLUP);
 
-  wifi_tools::startClient();
-  bool result = config.load();
-  // TODO: If result is FALSE, blink LED error pattern, halt further operations
-  controller = new lightswitch::Controller(config);
+  primary = new led::LED{PIN_LED_PRIMARY};
+  primary->setup().blink(250);
+  secondary = new led::LED{PIN_LED_SECONDARY};
+  secondary->setup().blink(250, 250, 250);
+
+  wifi_tools::startClient(led::LED::loop, 250);
+
+  if (!config.load()) {
+    // Fail-state. Halt and blink LEDs.
+    primary->blink(1000);
+    secondary->blink(1000);
+    while (true) {
+      led::LED::loop();
+    }
+  }
+
+  controller = new lightswitch::Controller(config, primary, secondary);
   controller->setup();
 }
 

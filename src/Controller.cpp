@@ -2,6 +2,9 @@
 
 #define LIGHT_CT_DEFAULT_VALUE 366
 
+#define LED_DURATION_LONG      2500
+#define LED_DURATION_SHORT     500
+
 namespace lightswitch {
 
 ////////////////////////////////////////////////////////////////
@@ -58,9 +61,11 @@ bool Defaulter::needs_update(sphue::Light &light) {
 // Class : Controller //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 
-Controller::Controller(Configuration &configuration)
+Controller::Controller(Configuration &configuration, led::LED *led_primary, led::LED *led_secondary)
     : server_(*this),
       config_(configuration),
+      ledPrimary_(led_primary),
+      ledSecondary_(led_secondary),
       sphue_(create_sphue()),
       defaulter_(configuration.defaulter_config_),
       cycler_(std::bind(&Controller::exec_color, this, std::placeholders::_1, std::placeholders::_2)) {
@@ -83,6 +88,10 @@ Controller::Controller(Configuration &configuration)
   }
 }
 
+void Controller::setup() {
+  server_.setup();
+  // TODO: If server setup fails, display error pattern on LEDs
+  // TODO: Check status of Sphue object. Display LED status
 }
 
 void Controller::loop() {
@@ -91,6 +100,8 @@ void Controller::loop() {
   if (defaulter_) {
     defaulter_.loop(sphue_);
   }
+  // Call LED looper to process timed jobs
+  led::LED::loop();
 }
 
 void Controller::exec_color(uint8_t cycle_id, color::Hsv32 *color) {
