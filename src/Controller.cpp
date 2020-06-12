@@ -2,10 +2,65 @@
 
 #define LIGHT_CT_DEFAULT_VALUE 366
 
-#define LED_DURATION_LONG      2500
-#define LED_DURATION_SHORT     500
+#define LED_DURATION_LONG       2500
+#define LED_DURATION_SHORT      500
 
 namespace lightswitch {
+
+////////////////////////////////////////////////////////////////
+// Class : LedController ///////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+LedController::LedController(led::LED *led_primary, led::LED *led_secondary)
+    : ledPrimary_(led_primary), ledSecondary_(led_secondary) {
+  //
+}
+
+void LedController::loop() {
+  led::LED::loop();
+}
+
+void LedController::ok() {
+  if (ledPrimary_) {
+    ledPrimary_->on();
+  }
+  if (ledSecondary_) {
+    ledSecondary_->off();
+  }
+}
+
+void LedController::ack() {
+  if (ledSecondary_) {
+    ledSecondary_->on(LED_DURATION_SHORT);
+  }
+}
+
+void LedController::waiting() {
+  if (ledPrimary_) {
+    ledPrimary_->on();
+  }
+  if (ledSecondary_) {
+    ledSecondary_->blink(LED_DURATION_LONG);
+  }
+}
+
+void LedController::error() {
+  if (ledPrimary_) {
+    ledPrimary_->off(LED_DURATION_SHORT);
+  }
+  if (ledSecondary_) {
+    ledSecondary_->on(LED_DURATION_SHORT);
+  }
+}
+
+void LedController::fatalError() {
+  if (ledPrimary_) {
+    ledPrimary_->blink(LED_DURATION_LONG);
+  }
+  if (ledSecondary_) {
+    ledSecondary_->blink(LED_DURATION_LONG, LED_DURATION_LONG, LED_DURATION_LONG);
+  }
+}
 
 ////////////////////////////////////////////////////////////////
 // Class : Defaulter ///////////////////////////////////////////
@@ -30,7 +85,7 @@ Defaulter::operator bool() const {
   return config_.enabled_;
 }
 
-void Defaulter::loop(sphue::Sphue &api) {
+void Defaulter::loop(sphue::Sphue &api, LedController &led_controller) {
   unsigned long now = millis();
   if (now >= nextPollTime_) {
     auto response = api.getAllLights();
@@ -39,10 +94,17 @@ void Defaulter::loop(sphue::Sphue &api) {
       for (auto & it : (**response)) {
         if (needs_update(it.second)) {
           // Perform light state change on this Light
-          api.setLightState(it.first, defaultLightState_);
-          // TODO: Should we check the result at all?
+          auto result = api.setLightState(it.first, defaultLightState_);
+          if (!result.empty() && result[0]) {
+            led_controller.ack();
+          } else {
+            led_controller.error();
+            }
+          }
         }
       }
+    } else {
+      led_controller.error();
     }
     nextPollTime_ = now + config_.refresh_rate_;
   }
@@ -64,8 +126,7 @@ bool Defaulter::needs_update(sphue::Light &light) {
 Controller::Controller(Configuration &configuration, led::LED *led_primary, led::LED *led_secondary)
     : server_(*this),
       config_(configuration),
-      ledPrimary_(led_primary),
-      ledSecondary_(led_secondary),
+      ledController_(led_primary, led_secondary),
       sphue_(create_sphue()),
       defaulter_(configuration.defaulter_config_),
       cycler_(std::bind(&Controller::exec_color, this, std::placeholders::_1, std::placeholders::_2)) {
@@ -89,19 +150,28 @@ Controller::Controller(Configuration &configuration, led::LED *led_primary, led:
 }
 
 void Controller::setup() {
+  // Set LEDs based on initial setup status.
+  if (!sphue_) {
+    // Fatal error: Sphue object invalid, issue with HTTP client
+    ledController_.fatalError();
+  } else if (!sphue_.getApiKey()) {
+    // Incomplete setup: Sphue object is valid, but missing an API key.
+    // Wait for a pairing signal to complete the setup.
+    ledController_.waiting();
+  } else {
+    ledController_.ok();
+  }
+  // Setup LightswitchServer object.
   server_.setup();
-  // TODO: If server setup fails, display error pattern on LEDs
-  // TODO: Check status of Sphue object. Display LED status
 }
 
 void Controller::loop() {
   server_.loop();
   cycler_.task();
   if (defaulter_) {
-    defaulter_.loop(sphue_);
+    defaulter_.loop(sphue_, ledController_);
   }
-  // Call LED looper to process timed jobs
-  led::LED::loop();
+  ledController_.loop();
 }
 
 void Controller::exec_color(uint8_t cycle_id, color::Hsv32 *color) {
