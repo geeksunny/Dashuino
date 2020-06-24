@@ -4,6 +4,7 @@
 
 #define LED_DURATION_LONG       2500
 #define LED_DURATION_SHORT      500
+#define LED_DURATION_MINI       250
 
 namespace lightswitch {
 
@@ -14,6 +15,14 @@ namespace lightswitch {
 LedController::LedController(led::LED *led_primary, led::LED *led_secondary)
     : ledPrimary_(led_primary), ledSecondary_(led_secondary) {
   //
+}
+
+void LedController::setup() {
+  // Need to call led::LED::setup() here for it to work as intended.
+  //  ::setup() was called in main.cpp, but there seems to be a limit of the scope.
+  //  A call to pinMode() [apparently] only applies for that specific compiler translation-unit.
+  ledPrimary_->setup();
+  ledSecondary_->setup();
 }
 
 void LedController::loop() {
@@ -93,6 +102,8 @@ void Defaulter::loop(sphue::Sphue &api, LedController &led_controller) {
       // Review list of Lights returned from API
       for (auto & it : (**response)) {
         if (needs_update(it.second)) {
+          // Reset Watch-Dog timer to prevent soft reset
+          yield();
           // Perform light state change on this Light
           auto result = api.setLightState(it.first, defaultLightState_);
           if (!result.empty() && result[0]) {
@@ -150,6 +161,8 @@ Controller::Controller(Configuration &configuration, led::LED *led_primary, led:
 }
 
 void Controller::setup() {
+  // Setup LEDs for usage.
+  ledController_.setup();
   // Set LEDs based on initial setup status.
   if (!sphue_) {
     // Fatal error: Sphue object invalid, issue with HTTP client
