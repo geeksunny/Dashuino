@@ -17,8 +17,8 @@
   },
   "PIN": {
     "SD_CS": 0,
-    "BUTTON": "`D5`",
-    "LED_PRIMARY": "`D6`",
-    "LED_SECONDARY": "`D7`"
+    "BUTTON": "`D3`",
+    "LED_PRIMARY": "`D2`",
+    "LED_SECONDARY": "`D1`"
   }
 }

@@ -5,15 +5,15 @@
 
 //// DIGITAL PINS ////
 #ifndef PIN_BUTTON
-#define PIN_BUTTON            D5
+#define PIN_BUTTON            D3
 #endif
 
 #ifndef PIN_LED_PRIMARY
-#define PIN_LED_PRIMARY       D6
+#define PIN_LED_PRIMARY       D2
 #endif
 
 #ifndef PIN_LED_SECONDARY
-#define PIN_LED_SECONDARY     D7
+#define PIN_LED_SECONDARY     D1
 #endif
 
 

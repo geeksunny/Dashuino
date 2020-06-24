@@ -17,14 +17,6 @@ LedController::LedController(led::LED *led_primary, led::LED *led_secondary)
   //
 }
 
-void LedController::setup() {
-  // Need to call led::LED::setup() here for it to work as intended.
-  //  ::setup() was called in main.cpp, but there seems to be a limit of the scope.
-  //  A call to pinMode() [apparently] only applies for that specific compiler translation-unit.
-  ledPrimary_->setup();
-  ledSecondary_->setup();
-}
-
 void LedController::loop() {
   led::LED::loop();
 }
@@ -161,8 +153,6 @@ Controller::Controller(Configuration &configuration, led::LED *led_primary, led:
 }
 
 void Controller::setup() {
-  // Setup LEDs for usage.
-  ledController_.setup();
   // Set LEDs based on initial setup status.
   if (!sphue_) {
     // Fatal error: Sphue object invalid, issue with HTTP client

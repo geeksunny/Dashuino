@@ -11,7 +11,6 @@ namespace lightswitch {
 class LedController {
  public:
   explicit LedController(led::LED *led_primary, led::LED *led_secondary);
-  void setup();
   void loop();
 
   void ok();
