@@ -2,7 +2,7 @@
 
 #define LIGHT_CT_DEFAULT_VALUE 366
 
-#define LED_DURATION_LONG       2500
+#define LED_DURATION_LONG       1500
 #define LED_DURATION_SHORT      500
 #define LED_DURATION_MINI       250
 
@@ -32,7 +32,7 @@ void LedController::ok() {
 
 void LedController::ack() {
   if (ledSecondary_) {
-    ledSecondary_->on(LED_DURATION_SHORT);
+    ledSecondary_->on(LED_DURATION_SHORT, 0, true);
   }
 }
 
@@ -47,10 +47,10 @@ void LedController::waiting() {
 
 void LedController::error() {
   if (ledPrimary_) {
-    ledPrimary_->off(LED_DURATION_SHORT);
+    ledPrimary_->off(LED_DURATION_SHORT, 0, true);
   }
   if (ledSecondary_) {
-    ledSecondary_->on(LED_DURATION_SHORT);
+    ledSecondary_->on(LED_DURATION_SHORT, 0, true);
   }
 }
 
