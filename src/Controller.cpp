@@ -92,7 +92,7 @@ void Defaulter::loop(sphue::Sphue &api, LedController &led_controller) {
     auto response = api.getAllLights();
     if (response) {
       // Review list of Lights returned from API
-      for (auto & it : (**response)) {
+      for (auto &it : (**response)) {
         if (needs_update(it.second)) {
           // Reset Watch-Dog timer to prevent soft reset
           yield();
@@ -102,15 +102,14 @@ void Defaulter::loop(sphue::Sphue &api, LedController &led_controller) {
             led_controller.ack();
           } else {
             led_controller.error();
-            }
           }
         }
       }
-    } else {
-      led_controller.error();
     }
-    nextPollTime_ = now + config_.refresh_rate_;
+  } else {
+    led_controller.error();
   }
+  nextPollTime_ = now + config_.refresh_rate_;
 }
 
 bool Defaulter::needs_update(sphue::Light &light) {
